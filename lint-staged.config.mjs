@@ -1,5 +1,5 @@
 export default {
-  '*.{js,jsx,json,md}': [
+  'src/**/*.{js,jsx,json,md}': [
     'npx secretlint'
   ]
 };
