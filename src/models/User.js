@@ -20,13 +20,36 @@ const userSchema = new mongoose.Schema(
       minlength: 6
     },
     role: {
-      type: String,
-      enum: ['student', 'admin'],
-      default: 'student'
+    type: String,
+    enum: ['student', 'faculty', 'staff', 'alumni', 'admin'],
+    default: 'student'
     },
     avatar: {
       type: String,
       default: ''
+    },
+    // New fields — CampusHub serves the whole campus (staff, faculty, alumni, clubs, not just students),
+    // so these are free-text rather than a locked "student-only" dropdown.
+    university: {
+      type: String,
+      default: 'State University',
+      trim: true
+    },
+    major: {
+      type: String,
+      default: '',
+      trim: true
+    },
+    year: {
+      type: String,
+      default: '',
+      trim: true
+    },
+    bio: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 500
     }
   },
   { timestamps: true }
