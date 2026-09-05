@@ -17,3 +17,5 @@ Thumbs.db
 
 # Test coverage output
 coverage/
+
+uploads/
