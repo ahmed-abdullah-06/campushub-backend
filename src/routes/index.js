@@ -8,6 +8,8 @@ import skillRoutes from './skillRoutes.js';
 import eventRoutes from './eventRoutes.js';
 import noteRoutes from './noteRoutes.js';
 import notificationRoutes from './notificationRoutes.js';
+// after: import notificationRoutes from './notificationRoutes.js';
+import uploadRoutes from './uploadRoutes.js';
 
 const router = express.Router();
 
@@ -20,5 +22,7 @@ router.use('/skills', skillRoutes);
 router.use('/events', eventRoutes);
 router.use('/notes', noteRoutes);
 router.use('/notifications', notificationRoutes);
+// after: router.use('/notifications', notificationRoutes);
+router.use('/upload', uploadRoutes);
 
 export default router;
