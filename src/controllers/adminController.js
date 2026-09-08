@@ -1,5 +1,9 @@
 import Report from '../models/Report.js';
 import User from '../models/User.js';
+import LostFound from '../models/LostFound.js';
+import Marketplace from '../models/Marketplace.js';
+import Event from '../models/Event.js';
+import Note from '../models/Note.js';
 
 export const getReports = async (req, res, next) => {
   try {
@@ -40,4 +44,47 @@ export const toggleUserSuspend = async (req, res, next) => {
     await user.save();
     res.json({ _id: user._id, name: user.name, email: user.email, status: user.status });
   } catch (error) { next(error); }
+};
+
+// @desc    Get platform-wide statistics for the Admin dashboard
+// @route   GET /api/admin/stats
+// @access  Private/Admin
+export const getAdminStats = async (req, res, next) => {
+  try {
+    // Run all counts in parallel rather than one after another — much faster
+    const [
+      totalUsers,
+      activeUsers,
+      suspendedUsers,
+      totalLostFound,
+      openLostFound,
+      totalMarketplace,
+      soldMarketplace,
+      totalEvents,
+      totalNotes,
+      pendingReports
+    ] = await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ status: { $ne: 'suspended' } }),
+      User.countDocuments({ status: 'suspended' }),
+      LostFound.countDocuments(),
+      LostFound.countDocuments({ status: 'open' }),
+      Marketplace.countDocuments(),
+      Marketplace.countDocuments({ status: 'sold' }),
+      Event.countDocuments(),
+      Note.countDocuments(),
+      Report.countDocuments({ status: 'pending' })
+    ]);
+
+    res.json({
+      users: { total: totalUsers, active: activeUsers, suspended: suspendedUsers },
+      lostFound: { total: totalLostFound, open: openLostFound },
+      marketplace: { total: totalMarketplace, sold: soldMarketplace },
+      events: { total: totalEvents },
+      notes: { total: totalNotes },
+      reports: { pending: pendingReports }
+    });
+  } catch (error) {
+    next(error);
+  }
 };
