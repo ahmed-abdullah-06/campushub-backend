@@ -6,17 +6,18 @@ import {
   getSkillRequests, 
   respondSkillRequest 
 } from '../controllers/skillController.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 router.route('/')
   .get(getSkills)
-  .post(createSkillProfile);
+  .post(protect, createSkillProfile);
 
 router.route('/requests')
-  .get(getSkillRequests)
-  .post(sendSkillRequest);
+  .get(protect, getSkillRequests)
+  .post(protect, sendSkillRequest);
 
-router.put('/requests/:id', respondSkillRequest);
+router.put('/requests/:id', protect, respondSkillRequest);
 
 export default router;

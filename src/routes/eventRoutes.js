@@ -6,8 +6,8 @@ const router = express.Router();
 
 router.route('/')
   .get(getEvents)
-  .post(createEvent);
+  .post(protect, createEvent);
 
-router.put('/:id/register', toggleEventRegister);
+router.put('/:id/register', protect, toggleEventRegister);
 
 export default router;
