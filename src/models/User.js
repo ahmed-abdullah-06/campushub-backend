@@ -45,12 +45,8 @@ const userSchema = new mongoose.Schema(
       default: '',
       trim: true
     },
-    bio: {
-      type: String,
-      default: '',
-      trim: true,
-      maxlength: 500
-    }
+    bio: { type: String, default: '', trim: true, maxlength: 500 },
+    status: { type: String, enum: ['active', 'suspended'], default: 'active' }
   },
   { timestamps: true }
 );
