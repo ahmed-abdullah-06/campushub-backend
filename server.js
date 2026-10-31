@@ -1,17 +1,20 @@
 import app from './src/app.js';
-import { config } from './src/config/env.js';
+import { config, assertSecureConfig } from './src/config/env.js';
 import { connectDB } from './src/config/db.js';
 
 const PORT = config.port;
 
 const startServer = async () => {
   try {
+    // 0. Refuse to boot in production with missing/default secrets
+    assertSecureConfig();
+
     // 1. Connect to Database first
     await connectDB();
-    
+
     // 2. Start Express server after DB connection succeeds
     app.listen(PORT, () => {
-      console.log(`🚀 CampusHub Backend Server running on port ${PORT}`);
+      console.log(`CampusHub Backend Server running on port ${PORT} [${config.nodeEnv}]`);
     });
   } catch (error) {
     console.error(`Failed to start server: ${error.message}`);
