@@ -21,6 +21,7 @@ Create a `.env` file in the root of the `backend/` folder based on `.env.example
 
 ```env
 PORT=5000
+<!-- secretlint-disable-next-line -->
 MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/campushub?retryWrites=true&w=majority
 JWT_SECRET=super_secret_jwt_key
 CLIENT_URL=http://localhost:5173
