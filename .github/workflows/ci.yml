@@ -1,0 +1,33 @@
+name: API CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Unit tests
+        run: npm test
+      - name: Boot check (fails on missing prod config)
+        env:
+          NODE_ENV: production
+          MONGO_URI: mongodb://127.0.0.1:27017/ci_check_db
+          JWT_SECRET: ci-only-secret-not-a-real-one
+          CLIENT_URL: http://localhost
+        run: |
+          node server.js &
+          SERVER_PID=$!
+          sleep 8
+          curl -f http://localhost:5000/api/health
+          kill $SERVER_PID
