@@ -12,8 +12,12 @@ const options = {
     },
     servers: [
       {
-        url: `http://localhost:${config.port}`,
-        description: 'Development Server',
+        // Docs should point at the API the caller is actually using:
+        // the deployed PUBLIC_URL in production, localhost in development.
+        url: config.publicUrl
+          ? `${config.publicUrl.replace(/\/$/, '')}/api`
+          : `http://localhost:${config.port}/api`,
+        description: config.isProduction ? 'Production Server' : 'Development Server',
       },
     ],
     components: {
