@@ -46,7 +46,18 @@ const userSchema = new mongoose.Schema(
       trim: true
     },
     bio: { type: String, default: '', trim: true, maxlength: 500 },
-    status: { type: String, enum: ['active', 'suspended'], default: 'active' }
+    status: { type: String, enum: ['active', 'suspended'], default: 'active' },
+    // Password reset — only the SHA-256 hash of the emailed token is stored,
+    // and it expires (see emailService.js). Cleared after a successful reset.
+    resetToken: { type: String, select: false, default: null },
+    resetTokenExpires: { type: Date, select: false, default: null },
+    // Per-account preferences edited on the Settings screen
+    settings: {
+      emailNotifs: { type: Boolean, default: true },
+      pushNotifs: { type: Boolean, default: true },
+      profileVisible: { type: Boolean, default: true },
+      language: { type: String, enum: ['en', 'ur'], default: 'en' }
+    }
   },
   { timestamps: true }
 );

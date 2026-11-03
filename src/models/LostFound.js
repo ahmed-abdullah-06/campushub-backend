@@ -34,9 +34,26 @@ const lostFoundSchema = new mongoose.Schema(
       type: String,
       default: ''
     },
+    // Date the item was lost/found (displayed on the post card)
+    dateLost: {
+      type: String,
+      default: ''
+    },
+    // Claim workflow: a student claims a FOUND item (or the finder claims a
+    // LOST item) and can leave a short proof message for the poster.
     claimedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
+      default: null
+    },
+    claimNote: {
+      type: String,
+      trim: true,
+      maxlength: [500, 'Claim message cannot exceed 500 characters'],
+      default: ''
+    },
+    claimedAt: {
+      type: Date,
       default: null
     },
     status: {

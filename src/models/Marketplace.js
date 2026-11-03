@@ -30,6 +30,11 @@ const marketplaceSchema = new mongoose.Schema(
       type: String,
       default: ''
     },
+    condition: {
+      type: String,
+      enum: ['Like New', 'Good', 'Fair', 'Poor'],
+      default: 'Good'
+    },
     status: {
       type: String,
       enum: ['available', 'sold'],
