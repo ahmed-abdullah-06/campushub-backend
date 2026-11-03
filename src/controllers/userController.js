@@ -2,6 +2,29 @@ import User from '../models/User.js';
 import { hashPassword } from '../utils/hashPassword.js';
 import { validateEmail } from '../utils/validators.js';
 
+// Roles a user is allowed to set on themselves. "admin" is deliberately excluded —
+// that can only be granted by an existing admin, via the Admin Panel's user management.
+const SELF_ASSIGNABLE_ROLES = ['student', 'faculty', 'staff', 'alumni'];
+
+const formatUser = (user) => ({
+  _id: user._id,
+  name: user.name,
+  email: user.email,
+  role: user.role,
+  avatar: user.avatar || '',
+  university: user.university || '',
+  major: user.major || '',
+  year: user.year || '',
+  bio: user.bio || '',
+  status: user.status,
+  settings: {
+    emailNotifs: user.settings?.emailNotifs ?? true,
+    pushNotifs: user.settings?.pushNotifs ?? true,
+    profileVisible: user.settings?.profileVisible ?? true,
+    language: user.settings?.language ?? 'en'
+  }
+});
+
 // @desc    Get user profile
 // @route   GET /api/users/profile
 // @access  Private
@@ -9,7 +32,7 @@ export const getUserProfile = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id).select('-password');
     if (user) {
-      res.json(user);
+      res.json(formatUser(user));
     } else {
       res.status(404);
       throw new Error('User not found');
@@ -18,10 +41,6 @@ export const getUserProfile = async (req, res, next) => {
     next(error);
   }
 };
-
-// Roles a user is allowed to set on themselves. "admin" is deliberately excluded —
-// that can only be granted by an existing admin, via the Admin Panel's user management.
-const SELF_ASSIGNABLE_ROLES = ['student', 'faculty', 'staff', 'alumni'];
 
 // @desc    Update user profile
 // @route   PUT /api/users/profile
@@ -35,7 +54,13 @@ export const updateUserProfile = async (req, res, next) => {
       throw new Error('User not found');
     }
 
-    user.name = req.body.name || user.name;
+    if (req.body.name !== undefined) {
+      if (!String(req.body.name).trim()) {
+        res.status(400);
+        throw new Error('Name cannot be empty');
+      }
+      user.name = String(req.body.name).trim();
+    }
     user.avatar = req.body.avatar || user.avatar;
     user.university = req.body.university !== undefined ? req.body.university : user.university;
     user.major = req.body.major !== undefined ? req.body.major : user.major;
@@ -58,6 +83,10 @@ export const updateUserProfile = async (req, res, next) => {
 
     // Role change — only allow self-assignment to non-admin roles
     if (req.body.role && req.body.role !== user.role) {
+      if (user.role === 'admin') {
+        res.status(403);
+        throw new Error('Admin accounts cannot change their own role. Ask another admin.');
+      }
       if (!SELF_ASSIGNABLE_ROLES.includes(req.body.role)) {
         res.status(403);
         throw new Error('You cannot assign yourself that role. Contact an admin.');
@@ -74,18 +103,38 @@ export const updateUserProfile = async (req, res, next) => {
     }
 
     const updatedUser = await user.save();
+    res.json(formatUser(updatedUser));
+  } catch (error) {
+    next(error);
+  }
+};
 
-    res.json({
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      role: updatedUser.role,
-      avatar: updatedUser.avatar,
-      university: updatedUser.university,
-      major: updatedUser.major,
-      year: updatedUser.year,
-      bio: updatedUser.bio
-    });
+// @desc    Persist Settings-screen preferences (notifications, privacy, language)
+// @route   PUT /api/users/settings
+// @access  Private
+export const updateUserSettings = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      res.status(404);
+      throw new Error('User not found');
+    }
+
+    const { emailNotifs, pushNotifs, profileVisible, language } = req.body;
+
+    if (emailNotifs !== undefined) user.settings.emailNotifs = Boolean(emailNotifs);
+    if (pushNotifs !== undefined) user.settings.pushNotifs = Boolean(pushNotifs);
+    if (profileVisible !== undefined) user.settings.profileVisible = Boolean(profileVisible);
+    if (language !== undefined) {
+      if (!['en', 'ur'].includes(language)) {
+        res.status(400);
+        throw new Error('Unsupported language');
+      }
+      user.settings.language = language;
+    }
+
+    const updated = await user.save();
+    res.json({ message: 'Settings saved', settings: formatUser(updated).settings });
   } catch (error) {
     next(error);
   }
